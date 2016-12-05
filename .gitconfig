@@ -1,0 +1,12 @@
+[filter "lfs"]
+	clean = git-lfs clean %f
+	smudge = git-lfs smudge %f
+	required = true
+[user]
+	email = imcasp@gmail.com
+	name = icasp
+[core]
+	autocrlf = input
+	safecrlf = true
+[credential]
+	helper = osxkeychain
