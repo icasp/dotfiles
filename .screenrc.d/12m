@@ -1,3 +1,5 @@
+source main
+
 chdir /srv/www/downloads
 screen -t data          0
 chdir /home/monkey/rtorrent_session
