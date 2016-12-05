@@ -1,0 +1,9 @@
+source main
+
+chdir "/Volumes/BlackBox/tv shows"
+screen -t local         0
+screen -t sync        1
+screen -t SimpleHTTP        2	#sh /Users/icasp/Scripts/ThreadedSimpleHTTP.py
+stuff "python /Users/icasp/Scripts/ThreadedSimpleHTTP.py"
+screen -t automation 3	tail -f /Users/icasp/Library/Logs/12M/downloader.log
+screen -t htop 4	sudo htop

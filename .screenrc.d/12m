@@ -1,0 +1,8 @@
+chdir /srv/www/downloads
+screen -t data          0
+chdir /home/monkey/rtorrent_session
+screen -t rtorrent      1       /usr/local/bin/rtorrent
+
+multiuser on
+acladd casp
+acladd adrien

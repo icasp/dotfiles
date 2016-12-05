@@ -1,0 +1,10 @@
+bindkey "^[[1;2D" prev
+bindkey "^[[1;2C" next
+
+altscreen on
+autodetach on
+startup_message off
+
+hardstatus alwayslastline
+
+hardstatus string '%{= kG} [ %{G}%H %{g}][%= %{= kw}%?%-Lw%?%{r}(%{W}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B} %m-%d %{W}%c %{g}] '
