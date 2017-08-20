@@ -6,6 +6,7 @@ brew tap homebrew/dupes
 
 apps=(
   ctags
+  streamlink
   git
   git-extras
   homebrew/completions/brew-cask-completion
@@ -23,6 +24,19 @@ apps=(
   wget
   xz
   zsh
+  pdfgrep
+  watch
+  tldr
+  nmap
+  fortune
+  p7zip
+  unrar
+  highlight
+  testdisk
+  wakeonlan
+  iperf
+  netcat
+  dos2unix
 )
 
 brew install "${apps[@]}"

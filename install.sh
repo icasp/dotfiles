@@ -10,7 +10,7 @@ if [ $(uname | tr " " "-") = "Darwin" ]
 then
 	sh xcode.sh
 	sh homebrew.sh
-#	sh formulas.sh
+	sh formulas.sh
 	sh casks.sh
 	sh node.sh
 	sh macossettings.sh

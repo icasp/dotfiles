@@ -277,6 +277,17 @@ defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
 defaults write com.apple.universalaccess closeViewScrollWheelToggle -bool true
 defaults write com.apple.universalaccess HIDScrollZoomModifierMask -int 262144
 
+
+##### Latest additions, to be ventilated in appropriate sections if existing
+# Leave network mounts free of ._*****
+defaults write come.apple.desktopservices DSDontWriteNetworkStores true
+
+# Do not index these externals
+sudo defaults write /Library/Preferences/com.apple.SpotlightServer.plist ExternalVolumesIgnore -bool True
+
+# And what if I want to use a random mount tech for my Time Machine?
+sudo defaults write com.apple.systempreferences TMShowUnsupportedNetworkVolumes 1
+
 #
 # END
 #
