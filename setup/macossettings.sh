@@ -52,7 +52,7 @@ defaults write com.apple.screensaver askForPassword -int 1
 defaults write com.apple.screensaver askForPasswordDelay -int 0
 
 #Disable automatic bluetooth audio devices reconnect
-defaults write /Library/Preferences/com.apple.Bluetooth.plist DontPageAudioDevices 1
+sudo defaults write /Library/Preferences/com.apple.Bluetooth.plist DontPageAudioDevices 1
 
 #
 # UI
@@ -69,8 +69,7 @@ for domain in ~/Library/Preferences/ByHost/com.apple.systemuiserver.*; do
 done
 
 # Enable the Menu Bar Item for Volume.
-defaults write com.apple.systemuiserver menuExtras -array \
-	"/System/Library/CoreServices/Menu Extras/Volume.menu"
+defaults write com.apple.systemuiserver menuExtras -array "/System/Library/CoreServices/Menu Extras/Volume.menu"
 
 # Set sidebar icon size to small.
 defaults write NSGlobalDomain NSTableViewDefaultSizeMode -int 1
@@ -116,7 +115,7 @@ defaults write NSGlobalDomain com.apple.springing.enabled -bool true
 defaults write NSGlobalDomain com.apple.springing.delay -float 0
 
 # Avoid creating .DS_Store files on network or USB volumes.
-defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
+#defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 defaults write com.apple.desktopservices DSDontWriteUSBStores -bool true
 
 # Disable disk image verification.
@@ -280,7 +279,7 @@ defaults write com.apple.universalaccess HIDScrollZoomModifierMask -int 262144
 
 ##### Latest additions, to be ventilated in appropriate sections if existing
 # Leave network mounts free of ._*****
-defaults write come.apple.desktopservices DSDontWriteNetworkStores true
+defaults write com.apple.desktopservices DSDontWriteNetworkStores -string true
 
 # Do not index these externals
 sudo defaults write /Library/Preferences/com.apple.SpotlightServer.plist ExternalVolumesIgnore -bool True

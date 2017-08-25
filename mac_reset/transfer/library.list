@@ -1,0 +1,10 @@
+# Lines prefixed with "=" are a safety precaution and won't be restored automatically
+
+Fonts
+Mail
+Messages
+Preferences/tv.plex.*
+#Preferences/com.plex.*
+
+=Preferences
+=LaunchAgents

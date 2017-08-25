@@ -1,0 +1,14 @@
+.[acdeghnsv]*
+.zhistory
+.py*
+conf
+Desktop
+Documents
+Downloads
+#Music
+Music/iTunes/iTunes\ Media/[MV]*
+Movies
+Pictures/[^P]*
+Scripts
+Toolbox
+#=WORK

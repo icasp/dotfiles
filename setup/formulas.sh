@@ -11,13 +11,14 @@ apps=(
   git-extras
   homebrew/completions/brew-cask-completion
   htop
-  mongodb
+  #mongodb
   mtr
-  nvm
+  #nvm
   perl
-  python
-  rtmpdump
-  ruby
+  python3
+  #python
+  #rtmpdump
+  #ruby
   the_silver_searcher
   trash
   vim
@@ -37,6 +38,8 @@ apps=(
   iperf
   netcat
   dos2unix
+  zsh
+  iproute2mac
 )
 
 brew install "${apps[@]}"
