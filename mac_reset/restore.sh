@@ -2,19 +2,13 @@
 
 test -e globals.sh && source globals.sh || { echo -e "\n\033[31m!! Please execute scripts from project folder\n\033[m" && exit 12; }
 
-$SH data_transfer.sh restore || sequenceAbort
 if [ ! $(id -u) -eq "0" ]
 then
-  $SH deploy.sh restore || sequenceAbort
-  $SH install.sh || sequenceAbort
-  cd $HOME \
-    && git clone --recursive https://github.com/icasp/zprezto.git "${ZDOTDIR:-$HOME}/.zprezto" \
-    && cd "${ZDOTDIR:-$HOME}/.zprezto" \
-    && chmod +x install.sh && ./install.sh \
-    && chsh -s /bin/zsh \
-    && cd - || sequenceAbort
+  $SH ../deploy.sh restore || sequenceAbort
+  $SH ../install.sh || sequenceAbort
   crontab $BACKUP/crontab.list || sequenceAbort
 fi
+$SH data_transfer.sh restore || sequenceAbort
 
 echo -e "\n${ORANGEBOLD}#### RESTORE END REPORT AND NOTES\n"
 echo -e "!! Must be restored manually :"

@@ -105,6 +105,17 @@ function auditCandidates()
 	done
 }
 
+function preztoNow()
+{
+	test -e "${ZDOTDIR:-$HOME}/.zprezto" && return 0
+  cd $HOME \
+    && git clone --recursive https://github.com/icasp/zprezto.git "${ZDOTDIR:-$HOME}/.zprezto" \
+    && cd "${ZDOTDIR:-$HOME}/.zprezto" \
+    && chmod +x install.sh && ./install.sh \
+    && chsh -s /bin/zsh \
+    && cd -
+}
+
 function update()
 {
 	backupCandidates $DOTCANDIDATES
@@ -124,6 +135,7 @@ function audit()
 }
 
 envInit
+preztoNow
 
 case $1 in
 	"update")
@@ -136,7 +148,7 @@ case $1 in
 		audit
 		;;
 	*)
-		echo "Please specify update or init (no previous deploys on this system) as deploy method"
+		echo "Please specify update, init or audit as deploy method"
 		exit 1
 	;;
 esac
