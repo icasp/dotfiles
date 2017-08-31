@@ -24,3 +24,11 @@ function sequenceAbort()
   echo -e "\n${RED}!! Restore sequence aborted, please assess status before resuming or moving on?\n${RESET}"
   exit 12
 }
+
+function escapeRoute()
+{
+  echo '' && read -p "End of step, enter 'q' to quit or anything else to proceed with $1: " ANS
+  if [ "$ANS" == 'q' ]; then
+    exit 0
+  fi
+}

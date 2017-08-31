@@ -2,14 +2,6 @@
 
 test -e globals.sh && source globals.sh || { echo -e "\n\033[31m!! Please execute scripts from 'mac_reset' folder\n\033[m" && exit 12; }
 
-function escapeRoute()
-{
-  echo '' && read -p "End of step, enter 'q' to quit or anything else to proceed with $1: " ANS
-  if [ "$ANS" == 'q' ]; then
-    exit 0
-  fi
-}
-
 checks=(
   'zprezto repo should be in sync if forked'
   'dotfiles repo should be in sync'
@@ -26,7 +18,7 @@ escapeRoute 'AUDIT'
 function saveButData()
 {
 	cd .. && $SH audit.sh || sequenceAbort
-	cd -
+	cd - > /dev/null
 	$SH audit_apps.sh || sequenceAbort
 
 	escapeRoute 'BACKUP'
