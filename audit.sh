@@ -2,8 +2,10 @@
 
 SH='sh'
 which bash &> /dev/null && SH=$(which bash)
-INSTALL_DIR="checklist"
 
+$SH deploy.sh audit
+
+INSTALL_DIR="checklist"
 cd "${INSTALL_DIR}"
 
 if [ ! -z $1 ]
@@ -14,7 +16,6 @@ fi
 if [ $(uname | tr " " "-") = "Darwin" ]
 then
 	#$SH xcode_check.sh
-	$SH deploy.sh audit
 	$SH homebrew_check.sh
 	if [ $? -eq 0 ]
   then
