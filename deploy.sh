@@ -1,26 +1,34 @@
 #!/bin/bash
 
-DOTSRC=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0")
+DOTSRC=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0" | sed 's/\.$//')
 BKDIR="$HOME/.dotfilesbackup"
+
 #DRYRUN=1
-TMPLOG='/tmp/dotfiles.log'
-test -f $TMPLOG && rm $TMPLOG
 
-RSYNCBIN=$(which rsync) || { echo '!!! rsync not found but required' ; exit 12; }
-RSYNCOPTS='-av'
-RSYNC_EXCLUDE=("--exclude '.git*'")
-if (($DRYRUN)); then RSYNCOPTS='-n '$RSYNCOPTS;fi
+DOTCANDIDATES=$(cat $DOTSRC/candidates.conf | sed 's/\r$//')
+ALTDOTCANDIDATES=$(cat $DOTSRC/.altcandidates.conf | sed 's/\r$//')
+ME='icasp'
 
-function sedInit()
+function envInit()
 {
+	TMPLOG='/tmp/dotfiles.log'
+	test -f $TMPLOG && rm $TMPLOG
 	if [ $(uname | tr " " "-") = "Darwin" ]
 	then
 		SEDOPT="-E"
 		ECHOOPT=""
+		function hashNow() { md5 -q $1 | cut -d ' ' -f 1; }
 	 else
 		 SEDOPT="-r"
 		 ECHOOPT="-ne --"
+		 function hashNow() { md5sum $1 | cut -d ' ' -f 1; }
 	 fi
+
+	 	$(uname | grep -q 'NT') && return 0
+	 	RSYNCBIN=$(which rsync) || { echo '!!! rsync not found but required' ; exit 12; }
+	 	RSYNCOPTS='-av'
+	 	RSYNC_EXCLUDE=("--exclude '.git*'")
+	 	if (($DRYRUN)); then RSYNCOPTS='-n '$RSYNCOPTS;fi
 }
 
 function deploycandidates()
@@ -67,13 +75,38 @@ function linkCandidates()
 
 function deployAltCandidates()
 {
-	ALTDOTCANDIDATES=$(cat $DOTSRC/.altcandidates.conf)
-	if [[ $1 == 'icasp' ]]; then deploycandidates $ALTDOTCANDIDATES; fi
+	if [[ $1 == $ME ]]; then deploycandidates $ALTDOTCANDIDATES; fi
+}
+
+function compare()
+{
+	dotHash=$(hashNow $HOME/.$1)
+	refHash=$(hashNow $DOTSRC/$2/$1)
+	[[ $dotHash == $refHash ]] && echo $dotHash $refHash && continue || \
+		echo "## Diffs on $1 go as follows (reference is git): "
+	diff --color=always $DOTSRC/$2/$1 $HOME/.$1
+	echo ''
+}
+
+function auditCandidates()
+{
+	candidates=$@
+	#${@:$#}
+	[[ ${!#} == '.alt' ]] && alt=${!#} && candidates=${*%${!#}}
+	for candidate in $candidates
+	do
+		test -e $HOME/.$candidate || { echo "!! $candidate is not deployed on this system" ; continue ; }
+		test -f $HOME/.$candidate && compare $candidate $alt
+		subCandidates=$(find $HOME/.$candidate | grep -iv 'ignore')
+		for subC in $subCandidates
+		do
+			test -f $HOME/.$subCandidate && compare $candidate $alt
+		done
+	done
 }
 
 function update()
 {
-	DOTCANDIDATES=$(cat $DOTSRC/candidates.conf)
 	backupCandidates $DOTCANDIDATES
 	linkCandidates $DOTCANDIDATES
 }
@@ -84,7 +117,13 @@ function init()
 	update
 }
 
-sedInit
+function audit()
+{
+	auditCandidates $DOTCANDIDATES
+	auditCandidates $ALTDOTCANDIDATES '.alt'
+}
+
+envInit
 
 case $1 in
 	"update")
@@ -92,6 +131,9 @@ case $1 in
 		;;
 	"init")
 		init
+		;;
+	"audit")
+		audit
 		;;
 	*)
 		echo "Please specify update or init (no previous deploys on this system) as deploy method"

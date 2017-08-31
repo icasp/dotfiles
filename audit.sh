@@ -14,6 +14,7 @@ fi
 if [ $(uname | tr " " "-") = "Darwin" ]
 then
 	#$SH xcode_check.sh
+	$SH deploy.sh audit
 	$SH homebrew_check.sh
 	if [ $? -eq 0 ]
   then
