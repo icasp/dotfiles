@@ -31,7 +31,6 @@ function saveButData()
 
 	escapeRoute 'BACKUP'
 	crontab -l > $BACKUP/crontab.list
-	$SH data_transfer.sh backup
 	$SH save_apps.sh
 }
 
