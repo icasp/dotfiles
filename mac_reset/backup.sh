@@ -13,10 +13,9 @@ do
 done
 echo -e "${RESET}\r"
 
-escapeRoute 'AUDIT'
-
 function saveButData()
 {
+	escapeRoute 'AUDIT'
 	cd .. && $SH audit.sh || sequenceAbort
 	cd - > /dev/null
 	$SH audit_apps.sh || sequenceAbort
@@ -35,6 +34,7 @@ OPERATION=$1
 
 case $OPERATION in
   'final')
+		escapeRoute 'BACKUP'
 		saveData
     ;;
   *)

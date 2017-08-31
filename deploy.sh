@@ -84,7 +84,7 @@ function compare()
 	refHash=$(hashNow $DOTSRC/$2/$1)
 	[[ $dotHash == $refHash ]] && echo $dotHash $refHash && continue || \
 		echo "## Diffs on $1 go as follows (reference is git): "
-	diff --color=always $DOTSRC/$2/$1 $HOME/.$1
+	git diff $DOTSRC/$2/$1 $HOME/.$1
 	echo ''
 }
 
