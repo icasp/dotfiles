@@ -2,12 +2,6 @@
 
 test -e globals.sh && source globals.sh || { echo -e "\n\033[31m!! Please execute scripts from project folder\n\033[m" && exit 12; }
 
-function sequenceAbort()
-{
-  echo -e "\n${RED}!! Restore sequence aborted, please assess status before resuming or moving on?\n${RESET}"
-  exit 12
-}
-
 $SH data_transfer.sh restore || sequenceAbort
 if [ ! $(id -u) -eq "0" ]
 then

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-#BACKUP='/Volumes/backup_hd'
-BACKUP='test'
+BACKUP='/Volumes/PROTEUS/myplex'
 SYSTEM='/'
 #SYSTEM='dummy'
 LISTS='./transfer/'
@@ -19,3 +18,9 @@ SH='sh'
 which bash &> /dev/null && SH=$(which bash)
 
 DOTSRC=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0")
+
+function sequenceAbort()
+{
+  echo -e "\n${RED}!! Restore sequence aborted, please assess status before resuming or moving on?\n${RESET}"
+  exit 12
+}

@@ -4,8 +4,8 @@ test -e globals.sh && source globals.sh || { echo -e "\n\033[31m!! Please execut
 
 function escapeRoute()
 {
-  echo '' && read -p "End of audit sequence, enter 'q' to quit or anything else to start backup : " ANS
-  if [ $ANS == 'q' ]; then
+  echo '' && read -p "End of step, enter 'q' to quit or anything else to proceed with $1: " ANS
+  if [ "$ANS" == 'q' ]; then
     exit 0
   fi
 }
@@ -21,13 +21,36 @@ do
 done
 echo -e "${RESET}\r"
 
-escapeRoute
+escapeRoute 'AUDIT'
 
-$SH ../audit.sh
-$SH audit_apps.sh
+function saveButData()
+{
+	cd .. && $SH audit.sh || sequenceAbort
+	cd -
+	$SH audit_apps.sh || sequenceAbort
 
-escapeRoute
+	escapeRoute 'BACKUP'
+	crontab -l > $BACKUP/crontab.list
+	$SH data_transfer.sh backup
+	$SH save_apps.sh
+}
 
-crontab -l > $BACKUP/crontab.list
-$SH data_transfer.sh backup
-$SH save_apps.sh
+function saveData()
+{
+	$SH data_transfer.sh backup
+}
+
+OPERATION=$1
+
+case $OPERATION in
+  'final')
+		saveData
+    ;;
+  *)
+		saveButData
+		saveData
+    ;;
+esac
+
+
+exit 0

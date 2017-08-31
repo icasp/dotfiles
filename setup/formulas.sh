@@ -24,7 +24,6 @@ apps=(
   vim
   wget
   xz
-  zsh
   pdfgrep
   watch
   tldr
@@ -40,6 +39,10 @@ apps=(
   dos2unix
   zsh
   iproute2mac
+	#gdbm
+	#iftop
+	#pcre
+	#zsh-completions
 )
 
 brew install "${apps[@]}"

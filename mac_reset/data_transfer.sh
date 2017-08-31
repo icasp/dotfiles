@@ -95,7 +95,7 @@ case $OPERATION in
   'backup')
     SRC=$SYSTEM
     DST=$BACKUP
-    OPTS='-Ru --delete'
+    OPTS='-Ru --delete' # --inplace'
     initTransfers
     ;;
   'restore')
@@ -111,5 +111,3 @@ esac
 
 exit 0
 
-
-#crons
