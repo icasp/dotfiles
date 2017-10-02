@@ -8,7 +8,7 @@ ORANGEBOLD='\033[1m'
 RESET='\033[m'
 
 echo -e "\n${ORANGEBOLD}Checking macOS settings...${RESET}"
-echo -e "\n${ORANGEBOLD}Will only check for 'defaults' changes, other settings have not been implemented (yet?).${RESET}"
+echo -e "${ORANGEBOLD}Will only check for 'defaults' changes, other settings have not been implemented (yet?).${RESET}"
 # Ask for the administrator password upfront.
 sudo -v
 echo -e "Not checked :${RED}"

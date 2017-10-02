@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-
 set -e
 
 SH='sh'
 which bash &> /dev/null && SH=$(which bash)
 INSTALL_DIR="setup"
-
+logFile='../logs/formulas.log'
 cd "${INSTALL_DIR}"
 
 if [ ! -z $1 ]
@@ -16,8 +15,9 @@ fi
 if [ $(uname | tr " " "-") = "Darwin" ]
 then
 	sh xcode.sh
-	sh homebrew.sh
-	sh formulas.sh
+	sh homebrew.sh \
+		&& echo "Will now install formulas in the background, progress can be followed in ${INSTALL_DIR}/$logFile" \
+		&& (sh formulas.sh &> $logFile &)
 	$SH casks.sh
 	$SH python.sh && $SH pip.sh
 	#sh node.sh

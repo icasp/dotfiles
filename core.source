@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+BACKUP='/Volumes/PROTEUS/myplex'
+SYSTEM='/'
+#SYSTEM='dummy'
+#USER=$(whoami)
+USER='icasp'
+ME='icasp'
+
+LIVEDUMP=0 # set as 1 to redirect all files outputs to STDOUT, can get messing, was not just named 'DEBUG' for a reason
+
+BLUEBOLD='\033[1;34m'
+RED='\033[31m'
+ORANGEBOLD='\033[1m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+RESET='\033[m'
+
+SH='sh'
+which bash &> /dev/null && SH=$(which bash)
+
+function envInit()
+{
+	TMPLOG='/tmp/dotfiles.log'
+	test -f $TMPLOG && rm $TMPLOG
+	#ECHOOPT="-ne --"
+	if [ $(uname | tr " " "-") = "Darwin" ]
+	then
+		SEDOPT="-E"
+		function hashNow() { md5 -q $1 | cut -d ' ' -f 1; }
+	 else
+		 SEDOPT="-r"
+		 function hashNow() { md5sum $1 | cut -d ' ' -f 1; }
+	 fi
+
+ 	$(uname | grep -q 'NT') && return 0
+	RSYNCBIN=$(which rsync) || { echo '!!! rsync not found but required' ; exit 12; }
+ 	RSYNCOPTS='-av'
+ 	RSYNC_EXCLUDE=("--exclude '.git*'")
+ 	if (($DRYRUN)); then RSYNCOPTS='-n '$RSYNCOPTS;fi
+	sPath=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0")
+	DOTSRC=$(echo $([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0") | sed $SEDOPT 's/(.*dotfiles).*/\1/')
+	mkdir -p "$DOTSRC/logs"
+}
+
+function sequenceAbort()
+{
+  echo -e "\n${RED}!! Restore sequence aborted, please assess status before resuming or moving on?\n${RESET}"
+  exit 12
+}
+
+function escapeRoute()
+{
+  echo '' && read -p "End of step, enter 'q' to quit or anything else to proceed with $1: " ANS
+  if [ "$ANS" == 'q' ]; then
+    exit 0
+  fi
+}
+
+function getLineFromFile() #line numnber, file
+{
+  test -f $2 && sed -n "$1,1p" $2
+}
+
+function failedArgs()
+{
+	echo -e "!! $0 : ${RED}You need to specify $@ as an argument${RESET}"
+}
+
+function exportAll()
+{
+	coreFuncs=$(declare -F | awk -F '-f ' '{print $2}')
+	export -f $coreFuncs
+	coreVars=$(sed $SEDOPT -n "s/^[ $(printf '\t')]*([a-zA-Z]+)=.*/\1/p" ${BASH_SOURCE[0]})
+	export $coreVars
+}
+
+envInit && exportAll > /dev/null && export COREINIT=1

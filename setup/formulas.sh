@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+output='../logs/formulas.log'
+(($LIVEDUMP)) || echo -e "\n##### Starting operation $(date)\n" >> $output 2>&1
+
 echo "Installing Formulas"
 
 brew tap homebrew/dupes
@@ -45,7 +48,8 @@ apps=(
 	#zsh-completions
 )
 
-brew install "${apps[@]}"
+# Ready for background task with (...) >> $output 2>&1 & except for password input on dependency, maybe later
+brew install "${apps[@]}" >> $output 2>&1
 
 brew cleanup
 

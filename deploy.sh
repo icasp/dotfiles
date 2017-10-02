@@ -1,37 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-DOTSRC=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0" | sed 's/\.$//')
+sPath=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0")
+(($COREINIT)) || source $sPath/core.source || { echo -e "\n\033[31m!! Could not find 'core.source' in parent folder??\n\033[m" && exit 12; }
+cd $DOTSRC > /dev/null
 BKDIR="$HOME/.dotfilesbackup"
-
 #DRYRUN=1
 
 DOTCANDIDATES=$(cat $DOTSRC/candidates.conf | sed 's/\r$//')
 ALTDOTCANDIDATES=$(cat $DOTSRC/.altcandidates.conf | sed 's/\r$//')
-ME='icasp'
 
-function envInit()
-{
-	TMPLOG='/tmp/dotfiles.log'
-	test -f $TMPLOG && rm $TMPLOG
-	if [ $(uname | tr " " "-") = "Darwin" ]
-	then
-		SEDOPT="-E"
-		ECHOOPT=""
-		function hashNow() { md5 -q $1 | cut -d ' ' -f 1; }
-	 else
-		 SEDOPT="-r"
-		 ECHOOPT="-ne --"
-		 function hashNow() { md5sum $1 | cut -d ' ' -f 1; }
-	 fi
-
-	 	$(uname | grep -q 'NT') && return 0
-	 	RSYNCBIN=$(which rsync) || { echo '!!! rsync not found but required' ; exit 12; }
-	 	RSYNCOPTS='-av'
-	 	RSYNC_EXCLUDE=("--exclude '.git*'")
-	 	if (($DRYRUN)); then RSYNCOPTS='-n '$RSYNCOPTS;fi
-}
-
-function deploycandidates()
+function deployCandidates()
 {
 	for candidate in $@
 	do
@@ -48,8 +26,9 @@ function backupCandidates()
 	test -e $BKDIR || mkdir -p $BKDIR
 	for candidate in $@;
 	do
-		test -e $HOME/.$candidate && $RSYNCBIN $RSYNCOPTS $HOME/.$candidate $BKDIR/ >> $TMPLOG 2>&1 \
-		 && echo "$candidate backup OK" || { ERR=1 ; echo "BACKUP FAILED for $candidate"; }
+		test -e $HOME/.$candidate || { echo "$candidate does not exist on source, not backing up (obviously)" ; continue ; }
+		$RSYNCBIN $RSYNCOPTS $HOME/.$candidate $BKDIR/ >> $TMPLOG 2>&1 \
+		 && echo "$candidate backup OK" || { ERR=1 ; echo "BACKUP FAILED for $candidate"; return 12 ; }
 	done
 }
 
@@ -57,7 +36,12 @@ function linkCandidates()
 {
 	for candidate in $@
 	do
-		files=$(find $DOTSRC -type f -path "*/$candidate/*" -a -not -path "*.alt*")
+		files=$(find $DOTSRC -type f -path "*/$candidate/*" -a -not -path "*.alt*" | grep -v 'gitignore')
+		dirs=$(find $DOTSRC -type d -path "*/$candidate/*" -a -not -path "*.alt*" | sed $SEDOPT "s@$DOTSRC@$HOME@" | sed $SEDOPT "s@($candidate)@.\1@")
+		for dir in $dirs
+		do
+			mkdir -p "$dir"
+		done
 		if [ ${#files} -ne 0 ];
 		then
 			for file in $files
@@ -65,7 +49,7 @@ function linkCandidates()
 				fileHomePath=$(echo $file | sed $SEDOPT "s@$DOTSRC@$HOME@" | sed $SEDOPT "s@($candidate)@.\1@")
 				fileHomeDir=$(echo $fileHomePath | sed $SEDOPT 's@/[^/]+$@@')
 				test -e $fileHomeDir || mkdir -p $fileHomeDir
-				test -f $fileHomePath && rm $fileHomePath ; ln -s $fileHomePath $file
+				test -f $fileHomePath && rm $fileHomePath ; ln -s $file $fileHomePath
 			done
 		else
 			test -f $HOME/.$candidate && rm $HOME/.$candidate 2> /dev/null ; ln -s $DOTSRC/$candidate $HOME/.$candidate
@@ -80,9 +64,10 @@ function deployAltCandidates()
 
 function compare()
 {
+	test -f $DOTSRC/$2/$1 || { echo "!! $1 not in dotfiles ref but exists locally" ; continue ; }
 	dotHash=$(hashNow $HOME/.$1)
 	refHash=$(hashNow $DOTSRC/$2/$1)
-	[[ $dotHash == $refHash ]] && echo $dotHash $refHash && continue || \
+	[[ $dotHash == $refHash ]] && echo "$1 OK"  && continue || \
 		echo "## Diffs on $1 go as follows (reference is git): "
 	git diff $DOTSRC/$2/$1 $HOME/.$1
 	echo ''
@@ -97,45 +82,56 @@ function auditCandidates()
 	do
 		test -e $HOME/.$candidate || { echo "!! $candidate is not deployed on this system" ; continue ; }
 		test -f $HOME/.$candidate && compare $candidate $alt
-		subCandidates=$(find $HOME/.$candidate | grep -iv 'ignore')
+		subCandidates=$(find $HOME/.$candidate | grep -iv 'ignore' | sed "s@$HOME/*\.@@g")
 		for subC in $subCandidates
 		do
-			test -f $HOME/.$subCandidate && compare $candidate $alt
+			test -f $HOME/.$subC &&  compare $subC $alt
 		done
 	done
+}
+
+function setShell()
+{
+	currentShell=$(dscl . -read /Users/$ME UserShell | cut -d ' ' -f 2)
+	test -f /usr/local/bin/zsh && newShell='/usr/local/bin/zsh' || newShell='/bin/zsh'
+	sudo dscl localhost -change Local/Default/Users/$USER UserShell /bin/bash $newShell
+	#chsh -s $newShell
 }
 
 function preztoNow()
 {
 	test -e "${ZDOTDIR:-$HOME}/.zprezto" && return 0
   cd $HOME \
-    && git clone --recursive https://github.com/icasp/zprezto.git "${ZDOTDIR:-$HOME}/.zprezto" \
+    && git clone --recursive https://github.com/icasp/prezto.git "${ZDOTDIR:-$HOME}/.zprezto" \
     && cd "${ZDOTDIR:-$HOME}/.zprezto" \
     && chmod +x install.sh && ./install.sh \
-    && chsh -s /bin/zsh \
-    && cd -
+&& echo "PREZTO INSTALLATION SUCCESS" \
+    && setShell
+  cd $DOTSRC
 }
 
 function update()
 {
 	backupCandidates $DOTCANDIDATES
 	linkCandidates $DOTCANDIDATES
+preztoNow
 }
 
 function init()
 {
-	sh $DOTSRC/install.sh
 	update
+	sh $DOTSRC/install.sh
 }
 
 function audit()
 {
+	echo -e "${ORANGEBOLD}Now auditing dotfiles candidates...${RESET}"
 	auditCandidates $DOTCANDIDATES
 	auditCandidates $ALTDOTCANDIDATES '.alt'
+	sh $DOTSRC/install_check.sh
 }
 
 envInit
-preztoNow
 
 case $1 in
 	"update")

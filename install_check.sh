@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
+sPath=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0")
+(($COREINIT)) || source $sPath/core.source || { echo -e "\n\033[31m!! Could not find 'core.source' in parent folder??\n\033[m" && exit 12; }
+cd $DOTSRC > /dev/null
+
 SH='sh'
 which bash &> /dev/null && SH=$(which bash)
-
-$SH deploy.sh audit
 
 INSTALL_DIR="checklist"
 cd "${INSTALL_DIR}"

@@ -2,6 +2,10 @@
 
 #set -x
 
+logFile="$(echo $DOTSRC)/logs/$(echo $0 | sed $SEDOPT 's/^.+\/([a-z_]+\.)sh$/\1log/')"
+(($LIVEDUMP)) && output='&1' || output=$logFile
+(($LIVEDUMP)) || echo -e "\n##### Starting operation $(date)\n" >> $output 2>&1
+
 FORMULAS_INSTALL='../setup/formulas.sh'
 
 # 0 for BOOL false, else is true

@@ -41,6 +41,11 @@ function buildInstalledlist()
   installed=$(brew cask list)
 }
 
+brew list | grep -q cask && \
+  echo "Installing 'cask' to provide report..." && \
+  brew tap caskroom/cask && \
+  brew tap caskroom/versions
+
 buildExpectedList
 #echo $expected
 buildInstalledlist

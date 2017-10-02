@@ -4,6 +4,7 @@
 osascript -e 'tell application "System Preferences" to quit'
 
 # Ask for the administrator password upfront.
+echo "User password required to proceed with masOS settings."
 sudo -v
 
 # Keep-alive.

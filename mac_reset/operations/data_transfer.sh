@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
+sPath=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0")
+ENVERR="\033[31m!! Environment not initialized, if calling child script then use 'bash -c \"source [../]core.source && bash $0\"'\033[m"
+(($COREINIT)) || { echo -e $ENVERR && exit 12 ; }
 
-source globals.sh
+logFile="$(echo $DOTSRC)/logs/$(echo $0 | sed $SEDOPT 's/^.+\/([a-z_]+\.)sh$/\1log/')"
+(($LIVEDUMP)) && output='&1' || output=$logFile
+(($LIVEDUMP)) || echo -e "\n##### Starting operation $(date)\n" >> $output 2>&1
+
+RSYNC_EXCLUDE='--exclude *.dotfiles*'
 
 function targetExists()
 {
@@ -9,8 +16,17 @@ function targetExists()
   return 1
 }
 
+function updateLists()
+{
+  if [[ $OPERATION == "backup" ]]
+  then
+    echo $l >> runtime/$transferList
+  fi
+}
+
 function transfer() # targets list file name, directory
 {
+  transferList="$1.list"
   while read l
   do
     if [[ "$l" == "#"* ]] || [[ "$l" == "" ]]; then continue; fi
@@ -24,14 +40,17 @@ function transfer() # targets list file name, directory
         l=${l:1}
       fi
     fi
-    targetExists "'$SRC/$2/$l'" || { echo -e "${RED}Skipping item '$l' because source '$SRC/$2/$l' was not found${RESET}" && continue ; }
+    targetExists "'$SRC/$2/$l'" \
+      && updateLists \
+      || { echo -e "${RED}Skipping item '$l' because source '$SRC/$2/$l' was not found${RESET}" && continue ; }
     status="${YELLOW}Now processing item '$l'...${RESET}"
     printf "$status"
     target=$(echo "$SRC/$2/$l" | sed -E 's/([^\[*]+)(\[.+\])*(\*)?/\"\1\"\2\3/g')
-    eval rsync -a $OPTS $target $DST/ \
+    (($LIVEDUMP)) || echo rsync -a $RSYNCOPTS $RSYNC_EXCLUDE $target \"$DST/$2/\" >> $output 2>&1
+    { eval time rsync -a $RSYNCOPTS $RSYNC_EXCLUDE $target \"$DST/$2/\" ; } >> $output 2>&1 \
       && printf " ${GREEN}ok${RESET}\n" \
       || printf " ${RED}FAIL${RESET}\n"
-  done < "$LISTS/$1.list"
+  done < $LISTS/$transferList
 }
 
 function checkArgsCount()
@@ -46,9 +65,10 @@ function checkArgsCount()
 function proceedWith()
 {
   checkArgsCount $# 3
-  test -e "$DST/$2" || mkdir -p $DST/$2
+  test -e "$LISTS/$1.list" || { echo -e "!! ${RED}$1 list file does not exist, skipping...${RESET}" ; return 1 ; }
+  test -e "$DST/$2" || mkdir -p "$DST/$2"
   echo -e "${ORANGEBOLD}Starting ${@:3} transfer from $SRC/$2 to $DST/$2...${RESET}" \
-    && time transfer "$1" "$2"
+    && transfer "$1" "$2"
 }
 
 function initTransfers()
@@ -57,6 +77,7 @@ function initTransfers()
   proceedWith library Users/$USER/Library Library
   proceedWith application_support Users/$USER/Library/Application\ Support Application Support
   proceedWith containers Users/$USER/Library/Containers Containers
+  #printf '\n'
 }
 
 function checkList() # targets file
@@ -75,12 +96,12 @@ function backupCompleteness()
 
 function confirmRestore()
 {
-  echo -e "\033[1mPress 'y' to confirm restore of '$SRC' on '$DST', otherwise will skip in 10 seconds...\033[0m"
+  echo -e "\033[1mPress 'y' to confirm restore of '$SRC' on '$DST', otherwise will skip in 10 seconds...\033[0m" >&2
   for i in $(seq 10 1)
   do
     read -p $i... -n 1 -t 1 a && break
   done
-  if [ $a == "y" ]
+  if [[ ! -z $a ]] && [ $a == "y" ]
   then
     echo -e "\nLet's go"
   else
@@ -95,12 +116,14 @@ case $OPERATION in
   'backup')
     SRC=$SYSTEM
     DST=$BACKUP
-    OPTS='-Ru --delete' # --inplace'
+    LISTS="$sPath/../configuration/"
+    RSYNCOPTS='-u --delete' # --inplace'
     initTransfers
     ;;
   'restore')
     SRC=$BACKUP
     DST=$SYSTEM
+    LISTS="$sPath/../runtime/"
     confirmRestore
     initTransfers
     ;;
@@ -110,4 +133,3 @@ case $OPERATION in
 esac
 
 exit 0
-

@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
+sPath=$([[ $0 == /* ]] && dirname $0 || dirname "$(pwd)/$0")
+ENVERR="\033[31m!! Environment not initialized, if calling child script then use 'bash -c \"source [../]core.source && bash $0\"'\033[m"
+(($COREINIT)) || { echo -e $ENVERR && exit 12 ; }
 
-EXPECTED_FILE='./apps.expected'
+#test -f "$sPath/../runtime/apps.expected" && EXPECTED_FILE="$sPath/../runtime/apps.expected" || EXPECTED_FILE="$sPath/../configuration/apps.expected"
+EXPECTED_FILE="$sPath/../configuration/apps.expected"
 
 ## Thanks to patrik @ stackoverflow
 function elementInArray()
